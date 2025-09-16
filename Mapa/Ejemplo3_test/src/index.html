@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Example</title>
+    <style>
+        #map {
+            height: 400px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <form>
+        <select id="localidad">
+            <option value="">Seleccione una localidad</option>
+            <option value="Buenos Aires, Argentina">Buenos Aires</option>
+            <option value="Córdoba, Argentina">Córdoba</option>
+            <option value="Rosario, Argentina">Rosario</option>
+        </select>
+        <input type="text" id="calle" placeholder="Calle">
+        <input type="text" id="numero" placeholder="Número">
+        <button type="submit">Buscar</button>
+    </form>
+</body>
+</html>

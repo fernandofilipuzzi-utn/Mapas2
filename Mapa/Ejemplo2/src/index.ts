@@ -6,6 +6,12 @@ interface MapOptions {
     zoom?: number;
 }
 
+declare global {
+    interface Window {
+        GoogleMaps: typeof GoogleMaps;
+    }
+}
+
 class GoogleMaps {
     private map: google.maps.Map | null = null;
     private marker: google.maps.Marker | null = null;
@@ -126,5 +132,5 @@ class GoogleMaps {
 
 }
 
-// Exportamos la clase como una exportación nombrada
-export { GoogleMaps };
+// Exponer la clase GoogleMaps globalmente
+(window as any).GoogleMaps = GoogleMaps;
