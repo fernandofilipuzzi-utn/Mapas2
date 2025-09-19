@@ -15,11 +15,26 @@ class GoogleMapsService {
     static DEFAULT_CENTER = { lat: -34.6037, lng: -58.3816 };
     static DEFAULT_ZOOM = 13;
 
+    private positionChangeCallback?: (lat: number, lng: number) => void;
+    private markerDropCallback?: (lat: number, lng: number) => void;
+
     constructor(element: string | HTMLElement, options: MapOptions) {
         if (!options.apiKey) {
             throw new Error('API Key is required');
         }
         this.init(element, options);
+
+        if (this.marker) 
+        {
+            this.marker.addListener('dragend', () => 
+            {
+                const position = this.marker?.getPosition();
+                if (position && this.markerDropCallback) 
+                    {
+                    this.markerDropCallback(position.lat(), position.lng());
+                }
+            });
+        }
     }
 
     private async init(element: string | HTMLElement, options: MapOptions): Promise<void> {
@@ -100,6 +115,19 @@ class GoogleMapsService {
     public setZoom(zoom: number): void {
         if (!this.map) return;
         this.map.setZoom(zoom);
+    }
+
+    public onPositionChanged(callback: (lat: number, lng: number) => void): void {
+        this.positionChangeCallback = callback;
+    }
+
+    public onMarkerDrop(callback: (lat: number, lng: number) => void): void {
+        this.markerDropCallback = callback;
+    }
+
+    public getCurrentPosition(): {lat: number, lng: number} | null {
+        const position = this.marker?.getPosition();
+        return position ? { lat: position.lat(), lng: position.lng() } : null;
     }
 }
 
