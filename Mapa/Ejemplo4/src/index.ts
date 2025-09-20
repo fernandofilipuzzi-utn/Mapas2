@@ -15,7 +15,7 @@ interface ZonaPolygon {
 class GoogleMapsService {
     private initPromise: Promise<void>;
     private map: google.maps.Map | null = null;
-    private marker: google.maps.Marker | null = null;
+    private marker: google.maps.marker.AdvancedMarkerElement | null = null;
     private geocoder: google.maps.Geocoder | null = null;
     private loader: Loader | null = null;
     private activePolygons: google.maps.Polygon[] = [];
@@ -51,23 +51,33 @@ class GoogleMapsService {
 
             this.map = new google.maps.Map(mapElement, {
                 center: options.center || GoogleMapsService.DEFAULT_CENTER,
-                zoom: options.zoom || GoogleMapsService.DEFAULT_ZOOM
+                zoom: options.zoom || GoogleMapsService.DEFAULT_ZOOM,
+                mapId: 'myMapId' // Requerido para AdvancedMarkerElement
             });
 
             const position = options.center || GoogleMapsService.DEFAULT_CENTER;
-            this.marker = new google.maps.Marker({
-                map: this.map,
-                position: position,
-                draggable: true,
-                title: 'Drag me!'
+            const markerView = new google.maps.marker.PinElement({
+                glyph: '⚑',
+                scale: 1.5
             });
 
-            this.marker.addListener('dragend', () => {
-                const position = this.marker?.getPosition();
-                if (position && this.markerDropCallback) {
-                    this.markerDropCallback(position.lat(), position.lng());
-                }
+            this.marker = new google.maps.marker.AdvancedMarkerElement({
+                map: this.map,
+                position: position,
+                gmpDraggable: true,
+                content: markerView.element
             });
+
+            if (this.marker) {
+                this.marker.addListener('dragend', () => {
+                    const position = this.marker?.position;
+                    if (position && this.markerDropCallback) {
+                        const lat = typeof position.lat === 'function' ? position.lat() : position.lat;
+                        const lng = typeof position.lng === 'function' ? position.lng() : position.lng;
+                        this.markerDropCallback(lat, lng);
+                    }
+                });
+            }
 
         } catch (error) {
             console.error('Error initializing map:', error);
@@ -86,12 +96,12 @@ class GoogleMapsService {
 
             if (results.results.length > 0) {
                 const location = results.results[0].geometry.location;
-                
-                this.marker.setPosition({ 
+                const newPos = { 
                     lat: location.lat(), 
                     lng: location.lng() 
-                });
+                };
                 
+                this.marker.position = newPos;
                 this.map.setCenter(location);
 
                 if (this.positionChangeCallback) {
@@ -107,19 +117,19 @@ class GoogleMapsService {
     public getCurrentPosition(): {lat: number, lng: number} | null {
         if (!this.marker) return null;
         
-        const position = this.marker.getPosition();
+        const position = this.marker.position;
         if (!position) return null;
 
         return {
-            lat: position.lat(),
-            lng: position.lng()
+            lat: typeof position.lat === 'function' ? position.lat() : position.lat,
+            lng: typeof position.lng === 'function' ? position.lng() : position.lng
         };
     }
 
     public setCenter(center: google.maps.LatLngLiteral): void {
         if (!this.map || !this.marker) return;
         this.map.setCenter(center);
-        this.marker.setPosition(center);
+        this.marker.position = center;
     }
 
     public setZoom(zoom: number): void {
