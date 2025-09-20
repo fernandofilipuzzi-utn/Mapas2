@@ -8,10 +8,11 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
     filename: 'openstreet.min.js',
     library: {
-      name: 'GoogleMapsService',
+      name: 'OpenStreetService',
       type: 'umd',
       export: 'default'
-    }
+    },
+    clean: true
   },
   resolve: {
     extensions: ['.ts', '.js']
@@ -22,6 +23,10 @@ module.exports = {
         test: /\.ts$/,
         use: 'ts-loader',
         exclude: /node_modules/
+      },
+      {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader']
       }
     ]
   },

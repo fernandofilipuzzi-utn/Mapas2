@@ -9,7 +9,7 @@ import { Point } from 'ol/geom';
 import { fromLonLat, transform } from 'ol/proj';
 import { Vector as VectorLayer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
-import { Style, Icon } from 'ol/style';
+import { Style, Icon, Stroke, Fill } from 'ol/style';
 import Polygon from 'ol/geom/Polygon';
 import { Modify } from 'ol/interaction';
 
@@ -105,7 +105,7 @@ export class OpenStreetService {
         if (!this.map || !this.marker) return;
 
         const modify = new Modify({
-            features: this.markerLayer?.getSource()?.getFeaturesCollection()
+            features: this.markerLayer?.getSource()?.getFeaturesCollection() || undefined
         });
 
         this.map.addInteraction(modify);
@@ -185,13 +185,13 @@ export class OpenStreetService {
         });
 
         polygon.setStyle(new Style({
-            stroke: {
+            stroke: new Stroke({
                 color: zona.color || '#FF0000',
                 width: 2
-            },
-            fill: {
+            }),
+            fill: new Fill({
                 color: zona.color ? zona.color + '59' : '#FF000059'
-            }
+            })
         }));
 
         this.polygonLayer.getSource()?.addFeature(polygon);
