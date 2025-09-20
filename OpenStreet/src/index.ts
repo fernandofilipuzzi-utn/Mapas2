@@ -22,7 +22,7 @@ interface MapOptions {
 
 interface ZonaPolygon {
     nombre: string;
-    coords: [number, number][];
+    coords: {lat: number, lng: number}[];
     color?: string;
 }
 
@@ -209,7 +209,8 @@ export class OpenStreetService {
         const coords = zona.coords.map(coord => {
             // Asumimos que coord[0] es lng y coord[1] es lat para mantener
             // la consistencia con el resto de la API
-            return fromLonLat([coord[0], coord[1]]);
+            console.log(coord.lng, coord.lat);
+            return fromLonLat([coord.lng, coord.lat]);
         });
 
         // Asegurarnos de cerrar el polígono si no está cerrado
