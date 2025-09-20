@@ -27,7 +27,16 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './src/index.html'
+      template: './src/index.html',
+      filename: 'index.html'
+    }),
+    new HtmlWebpackPlugin({
+      template: './src/inicializacion.html',
+      filename: 'inicializacion.html'
+    }),
+    new HtmlWebpackPlugin({
+      template: './src/zonas.html',
+      filename: 'zonas.html'
     }),
     new Dotenv()
   ],
@@ -36,6 +45,8 @@ module.exports = {
       directory: path.join(__dirname, 'dist')
     },
     compress: true,
-    port: 8080
+    port: 8080,
+    historyApiFallback: true,
+    open: true
   }
 };

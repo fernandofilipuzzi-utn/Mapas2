@@ -6,12 +6,19 @@ interface MapOptions {
     zoom?: number;
 }
 
+interface ZonaPolygon {
+    nombre: string;
+    coords: google.maps.LatLngLiteral[];
+    color?: string;
+}
+
 class GoogleMapsService {
     private initPromise: Promise<void>;
     private map: google.maps.Map | null = null;
     private marker: google.maps.Marker | null = null;
     private geocoder: google.maps.Geocoder | null = null;
     private loader: Loader | null = null;
+    private activePolygons: google.maps.Polygon[] = [];
 
     static DEFAULT_CENTER = { lat: -34.6037, lng: -58.3816 };
     static DEFAULT_ZOOM = 13;
@@ -130,6 +137,39 @@ class GoogleMapsService {
 
     public async isReady(): Promise<void> {
         return this.initPromise;
+    }
+
+    public clearZones(): void {
+        this.activePolygons.forEach(polygon => {
+            polygon.setMap(null);
+        });
+        this.activePolygons = [];
+    }
+
+    public drawZone(zona: ZonaPolygon): void {
+        if (!this.map) return;
+
+        const polygon = new google.maps.Polygon({
+            paths: zona.coords,
+            strokeColor: zona.color || "#FF0000",
+            strokeOpacity: 0.8,
+            strokeWeight: 2,
+            fillColor: zona.color || "#FF0000",
+            fillOpacity: 0.35
+        });
+
+        polygon.setMap(this.map);
+        this.activePolygons.push(polygon);
+
+        // Ajustar el mapa para mostrar todo el polígono
+        const bounds = new google.maps.LatLngBounds();
+        zona.coords.forEach(coord => bounds.extend(coord));
+        this.map.fitBounds(bounds);
+    }
+
+    public drawZones(zonas: ZonaPolygon[]): void {
+        this.clearZones();
+        zonas.forEach(zona => this.drawZone(zona));
     }
 }
 
