@@ -7,6 +7,7 @@ interface MapOptions {
 }
 
 class GoogleMapsService {
+    private initPromise: Promise<void>;
     private map: google.maps.Map | null = null;
     private marker: google.maps.Marker | null = null;
     private geocoder: google.maps.Geocoder | null = null;
@@ -22,58 +23,42 @@ class GoogleMapsService {
         if (!options.apiKey) {
             throw new Error('API Key is required');
         }
-        this.init(element, options);
-
-        if (this.marker) 
-        {
-            this.marker.addListener('dragend', () => 
-            {
-                const position = this.marker?.getPosition();
-                if (position && this.markerDropCallback) 
-                    {
-                    this.markerDropCallback(position.lat(), position.lng());
-                }
-            });
-        }
+        this.initPromise = this.init(element, options);
     }
 
     private async init(element: string | HTMLElement, options: MapOptions): Promise<void> {
-        const mapElement = typeof element === 'string' ? document.getElementById(element) : element;
-        
-        if (!mapElement) {
-            throw new Error('Map container element not found');
-        }
-
-        if (!options.apiKey) {
-            throw new Error('API Key is required');
-        }
-
-        this.loader = new Loader({
-            apiKey: options.apiKey,
-            version: 'weekly'
-        });
-
         try {
-            await this.loader.load();
-            
+            this.loader = new Loader({
+                apiKey: options.apiKey,
+                version: 'weekly',
+                libraries: ['marker']
+            });
+
+            const google = await this.loader.load();
+            const mapElement = typeof element === 'string' ? 
+                document.getElementById(element) : element;
+
+            if (!mapElement) {
+                throw new Error('Map container not found');
+            }
+
             this.map = new google.maps.Map(mapElement, {
                 center: options.center || GoogleMapsService.DEFAULT_CENTER,
                 zoom: options.zoom || GoogleMapsService.DEFAULT_ZOOM
             });
 
+            const position = options.center || GoogleMapsService.DEFAULT_CENTER;
             this.marker = new google.maps.Marker({
                 map: this.map,
-                position: options.center || GoogleMapsService.DEFAULT_CENTER,
-                draggable: true
+                position: position,
+                draggable: true,
+                title: 'Drag me!'
             });
 
-            this.geocoder = new google.maps.Geocoder();
-
-            // Configurar el evento de arrastre del marcador
             this.marker.addListener('dragend', () => {
                 const position = this.marker?.getPosition();
-                if (position) {
-                    console.log('Nueva posición:', position.lat(), position.lng());
+                if (position && this.markerDropCallback) {
+                    this.markerDropCallback(position.lat(), position.lng());
                 }
             });
 
@@ -84,19 +69,27 @@ class GoogleMapsService {
     }
 
     public async geocodeAddress(address: string): Promise<void> {
-        if (!this.geocoder || !this.map || !this.marker) {
-            throw new Error('Map not initialized');
+        if (!this.map || !this.marker) {
+            throw new Error('Map or marker not initialized');
         }
 
         try {
-            const results = await this.geocoder.geocode({ address });
-            
-            if (results.results[0]) {
+            const geocoder = new google.maps.Geocoder();
+            const results = await geocoder.geocode({ address });
+
+            if (results.results.length > 0) {
                 const location = results.results[0].geometry.location;
+                
+                this.marker.setPosition({ 
+                    lat: location.lat(), 
+                    lng: location.lng() 
+                });
+                
                 this.map.setCenter(location);
-                this.marker.setPosition(location);
-            } else {
-                throw new Error('No results found');
+
+                if (this.positionChangeCallback) {
+                    this.positionChangeCallback(location.lat(), location.lng());
+                }
             }
         } catch (error) {
             console.error('Geocoding error:', error);
@@ -104,12 +97,22 @@ class GoogleMapsService {
         }
     }
 
+    public getCurrentPosition(): {lat: number, lng: number} | null {
+        if (!this.marker) return null;
+        
+        const position = this.marker.getPosition();
+        if (!position) return null;
+
+        return {
+            lat: position.lat(),
+            lng: position.lng()
+        };
+    }
+
     public setCenter(center: google.maps.LatLngLiteral): void {
-        if (!this.map) return;
+        if (!this.map || !this.marker) return;
         this.map.setCenter(center);
-        if (this.marker) {
-            this.marker.setPosition(center);
-        }
+        this.marker.setPosition(center);
     }
 
     public setZoom(zoom: number): void {
@@ -125,12 +128,10 @@ class GoogleMapsService {
         this.markerDropCallback = callback;
     }
 
-    public getCurrentPosition(): {lat: number, lng: number} | null {
-        const position = this.marker?.getPosition();
-        return position ? { lat: position.lat(), lng: position.lng() } : null;
+    public async isReady(): Promise<void> {
+        return this.initPromise;
     }
 }
 
-// Expose to window object
 (window as any).GoogleMapsService = GoogleMapsService;
 export default GoogleMapsService;

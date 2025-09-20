@@ -19,10 +19,11 @@
             <div class="col-md-4">
                 <select id="localidades" class="form-select mb-3">
                     <option value="">Seleccione una localidad</option>
-                    <option value="Buenos Aires, Argentina">Buenos Aires</option>
-                    <option value="Córdoba, Argentina">Córdoba</option>
-                    <option value="Rosario, Argentina">Rosario</option>
-                    <option value="Mendoza, Argentina">Mendoza</option>
+                    <option value="Buenos Aires, Buenos Aires, Argentina">Buenos Aires</option>
+                    <option value="Córdoba, Córdoba, Argentina">Córdoba</option>
+                    <option value="Rosario, Santa Fé, Argentina">Rosario</option>
+                    <option value="Mendoza, Mendoza, Argentina">Mendoza</option>
+                     <option value="Paraná, Entre Ríos, Argentina">Paraná</option>
                 </select>
             </div>
             <div class="col-md-4">
@@ -43,41 +44,48 @@
 
     <script src="googlemaps.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() 
+        document.addEventListener('DOMContentLoaded',async function() 
         {
+            try {
+                const maps = new GoogleMapsService('map', 
+                {
+                    apiKey: 'apikey',  
+                    zoom: 13
+                });
+
+                await maps.isReady();
+                await maps.geocodeAddress('Paraná, Entre Ríos, Argentina');
             
-            const maps = new GoogleMapsService('map', 
-            {
-                apiKey: 'apikey',  
-                zoom: 13
-            });
-           
-            document.getElementById('localidades').addEventListener('change', function(e) 
-            {
-                if (e.target.value) {
-                    maps.geocodeAddress(e.target.value);
-                }
-            });
+                document.getElementById('localidades').addEventListener('change', function(e) 
+                {
+                    if (e.target.value) {
+                        maps.geocodeAddress(e.target.value);
+                    }
+                });
 
-            document.getElementById('buscar').addEventListener('click', function() {
-                const calle = document.getElementById('calle').value;
-                const numero = document.getElementById('numero').value;
-                const localidad = document.getElementById('localidades').value;
+                document.getElementById('buscar').addEventListener('click', function() {
+                    const calle = document.getElementById('calle').value;
+                    const numero = document.getElementById('numero').value;
+                    const localidad = document.getElementById('localidades').value;
 
-                if (calle && numero && localidad) {
-                    const direccion = `${calle} ${numero}, ${localidad}`;
-                    maps.geocodeAddress(direccion);
-                } else {
-                    alert('Por favor complete todos los campos');
-                }
-            });
+                    if (calle && numero && localidad) {
+                        const direccion = `${calle} ${numero}, ${localidad}`;
+                        maps.geocodeAddress(direccion);
+                    } else {
+                        alert('Por favor complete todos los campos');
+                    }
+                });
 
-            maps.onMarkerDrop((lat, lng) => 
+                maps.onMarkerDrop((lat, lng) => 
             {
                 console.log('Marcador soltado en:', lat, lng);
                 document.getElementById('coordinates').textContent = 
                     `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
             });
+        
+            } catch (error) {
+                console.error('Error initializing map:', error);
+            }
         });
     </script>
 </body>
