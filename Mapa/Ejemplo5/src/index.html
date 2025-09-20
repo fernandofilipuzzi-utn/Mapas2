@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Maps Service Demo</title>
+    <!-- Bootstrap 4.3.1 CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <!-- jQuery first, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <style>
+        .wrapper {
+            display: flex;
+            width: 100%;
+            align-items: stretch;
+        }
+
+        #sidebar {
+            min-width: 250px;
+            max-width: 250px;
+            min-height: 100vh;
+            background: #343a40;
+            color: #fff;
+            transition: all 0.3s;
+        }
+
+        #sidebar .sidebar-header {
+            padding: 20px;
+            background: #272c30;
+        }
+
+        #sidebar ul.components {
+            padding: 20px 0;
+        }
+
+        #sidebar ul p {
+            color: #fff;
+            padding: 10px;
+        }
+
+        #sidebar ul li a {
+            padding: 10px;
+            font-size: 1.1em;
+            display: block;
+            color: #fff;
+            text-decoration: none;
+        }
+
+        #sidebar ul li a:hover {
+            color: #343a40;
+            background: #fff;
+        }
+
+        #content {
+            width: 100%;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        #sidebarCollapse {
+            margin: 20px;
+        }
+
+        @media (max-width: 768px) {
+            #sidebar {
+                margin-left: -250px;
+            }
+            #sidebar.active {
+                margin-left: 0;
+            }
+        }
+
+        .iframe-container {
+            height: calc(100vh - 40px);
+            width: 100%;
+        }
+
+        #content iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h3>Google Maps Demo</h3>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li>
+                    <a href="domicilio.html" target="content-frame">
+                        <i class="fas fa-home"></i> Búsqueda por Domicilio
+                    </a>
+                </li>
+                <li>
+                    <a href="inicializacion.html" target="content-frame">
+                        <i class="fas fa-map-marker-alt"></i> Ubicación Inicial
+                    </a>
+                </li>
+                <li>
+                    <a href="zonas.html" target="content-frame">
+                        <i class="fas fa-draw-polygon"></i> Zonas
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <button type="button" id="sidebarCollapse" class="btn btn-dark">
+                <span>Toggle Menu</span>
+            </button>
+
+            <div class="iframe-container">
+                <iframe name="content-frame" src="domicilio.html"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function () {
+            $('#sidebarCollapse').on('click', function () {
+                $('#sidebar').toggleClass('active');
+            });
+
+            // Manejo de enlaces del sidebar
+            $('#sidebar a').click(function(e) {
+                // Remover clase activa de todos los enlaces
+                $('#sidebar a').removeClass('active');
+                // Agregar clase activa al enlace clickeado
+                $(this).addClass('active');
+            });
+        });
+    </script>
+</body>
+</html>
