@@ -13,7 +13,7 @@ import { Style, Icon, Stroke, Fill } from 'ol/style';
 import Polygon from 'ol/geom/Polygon';
 import Collection from 'ol/Collection';
 import { Geometry } from 'ol/geom';
-import { Modify } from 'ol/interaction';
+import { Modify, Translate } from 'ol/interaction';
 
 interface MapOptions {
     center?: [number, number];  // [longitude, latitude]
@@ -109,21 +109,23 @@ export class OpenStreetService {
     private setupDragAndDrop(): void {
         if (!this.map || !this.markerLayer || !this.marker) return;
 
-        // Obtener el source y sus features
+        // Obtener el source
         const source = this.markerLayer.getSource();
         if (!source) return;
 
-        const collection = source.getFeaturesCollection();
-        if (!collection) return;
+        // Crear una collection si no existe y añadir el marcador
+        const features = new Collection<Feature<Geometry>>();
+        features.push(this.marker);
 
-        // Crear la interacción Modify
-        const modify = new Modify({
-            source: source
+        // Añadir interacción de traslado
+        const translate = new Translate({
+            features: features
         });
 
-        this.map.addInteraction(modify);
+        this.map.addInteraction(translate);
 
-        modify.on('modifyend', () => {
+        // Escuchar el evento de fin de traslado
+        translate.on('translateend', () => {
             if (this.marker && this.markerDropCallback) {
                 const coords = (this.marker.getGeometry() as Point).getCoordinates();
                 const lonLat = transform(coords, 'EPSG:3857', 'EPSG:4326');
@@ -164,10 +166,19 @@ export class OpenStreetService {
     }
 
     public setCenter(center: [number, number]): void {
-        if (!this.map) return;
+        if (!this.map || !this.marker) return;
         
+        // Actualizar el centro del mapa
         this.map.getView().setCenter(fromLonLat(center));
-        this.addMarker(center);
+        
+        // Actualizar la posición del marcador
+        const point = new Point(fromLonLat(center));
+        this.marker.setGeometry(point);
+        
+        // Notificar el cambio de posición
+        if (this.positionChangeCallback) {
+            this.positionChangeCallback(center[1], center[0]);
+        }
     }
 
     public setZoom(zoom: number): void {
