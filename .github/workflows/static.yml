@@ -35,8 +35,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v2
         with:
-          # Upload OpenStreet/docs directory
-          path: 'Mapa/OpenStreet/docs'
+          # Upload OpenStreet/dist directory
+          path: 'Mapa/OpenStreet/dist'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
