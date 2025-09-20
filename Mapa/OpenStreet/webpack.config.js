@@ -5,7 +5,7 @@ const Dotenv = require('dotenv-webpack');
 module.exports = {
   entry: './src/index.ts',
   output: {
-    path: path.resolve(__dirname, 'docs'),
+    path: path.resolve(__dirname, 'dist'),
     filename: 'googlemaps.min.js',
     library: {
       name: 'GoogleMapsService',
@@ -46,7 +46,7 @@ module.exports = {
   ],
   devServer: {
     static: {
-      directory: path.join(__dirname, 'docs')
+      directory: path.join(__dirname, 'dist')
     },
     compress: true,
     port: 8080,
