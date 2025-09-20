@@ -54,16 +54,18 @@
                     zoom: 13
                 });
 
-                await maps.isReady();
-                await maps.geocodeAddress('Paraná, Entre Ríos, Argentina');
+                // Inicializar con Paraná
+                await map.geocodeAddress('Paraná, Entre Ríos, Argentina');
             
+                // Manejar cambio de localidad
                 document.getElementById('localidades').addEventListener('change', function(e) 
                 {
                     if (e.target.value) {
-                        maps.geocodeAddress(e.target.value);
+                        map.geocodeAddress(e.target.value);
                     }
                 });
 
+                // Manejar búsqueda por dirección
                 document.getElementById('buscar').addEventListener('click', function() {
                     const calle = document.getElementById('calle').value;
                     const numero = document.getElementById('numero').value;
@@ -71,13 +73,14 @@
 
                     if (calle && numero && localidad) {
                         const direccion = `${calle} ${numero}, ${localidad}`;
-                        maps.geocodeAddress(direccion);
+                        map.geocodeAddress(direccion);
                     } else {
                         alert('Por favor complete todos los campos');
                     }
                 });
 
-                maps.onMarkerDrop((lat, lng) => 
+                // Manejar el evento de soltar el marcador
+                map.onMarkerDrop((lat, lng) => 
             {
                 console.log('Marcador soltado en:', lat, lng);
                 document.getElementById('coordinates').textContent = 

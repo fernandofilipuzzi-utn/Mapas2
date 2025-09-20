@@ -11,6 +11,8 @@ import { Vector as VectorLayer } from 'ol/layer';
 import { Vector as VectorSource } from 'ol/source';
 import { Style, Icon, Stroke, Fill } from 'ol/style';
 import Polygon from 'ol/geom/Polygon';
+import Collection from 'ol/Collection';
+import { Geometry } from 'ol/geom';
 import { Modify } from 'ol/interaction';
 
 interface MapOptions {
@@ -53,9 +55,12 @@ export class OpenStreetService {
             source: new OSM()
         });
 
-        // Crear la capa para el marcador
+        // Crear la capa para el marcador con una Collection
+        const features = new Collection<Feature<Geometry>>();
         this.markerLayer = new VectorLayer({
-            source: new VectorSource()
+            source: new VectorSource({
+                features: features
+            })
         });
 
         // Crear la capa para los polígonos
@@ -102,10 +107,18 @@ export class OpenStreetService {
     }
 
     private setupDragAndDrop(): void {
-        if (!this.map || !this.marker) return;
+        if (!this.map || !this.markerLayer || !this.marker) return;
 
+        // Obtener el source y sus features
+        const source = this.markerLayer.getSource();
+        if (!source) return;
+
+        const collection = source.getFeaturesCollection();
+        if (!collection) return;
+
+        // Crear la interacción Modify
         const modify = new Modify({
-            features: this.markerLayer?.getSource()?.getFeaturesCollection() || undefined
+            source: source
         });
 
         this.map.addInteraction(modify);
