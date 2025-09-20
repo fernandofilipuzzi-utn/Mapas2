@@ -140,11 +140,14 @@ export class OpenStreetService {
             const data = await response.json();
 
             if (data && data.length > 0) {
-                const location: [number, number] = [parseFloat(data[0].lon), parseFloat(data[0].lat)];
+                const location = {
+                    lat: parseFloat(data[0].lat),
+                    lng: parseFloat(data[0].lon)
+                };
                 this.setCenter(location);
 
                 if (this.positionChangeCallback) {
-                    this.positionChangeCallback(location[1], location[0]);
+                    this.positionChangeCallback(location.lat, location.lng);
                 }
             }
         } catch (error) {
@@ -164,23 +167,21 @@ export class OpenStreetService {
             lng: coords[0]
         };
     }
-
-    public setCenter(center: [number, number]): void {
+    public setCenter(center: {lat: number, lng: number}): void {
+        
         if (!this.map || !this.marker) return;
-        
+
         // Actualizar el centro del mapa
-        this.map.getView().setCenter(fromLonLat(center));
-        
+        this.map.getView().setCenter(fromLonLat([center.lng, center.lat]));
+
         // Actualizar la posición del marcador
-        const point = new Point(fromLonLat(center));
+        const point = new Point(fromLonLat([center.lng, center.lat]));
         this.marker.setGeometry(point);
-        
         // Notificar el cambio de posición
         if (this.positionChangeCallback) {
-            this.positionChangeCallback(center[1], center[0]);
+            this.positionChangeCallback(center.lat, center.lng);
         }
     }
-
     public setZoom(zoom: number): void {
         if (!this.map) return;
         this.map.getView().setZoom(zoom);
@@ -202,12 +203,12 @@ export class OpenStreetService {
 
     public drawZone(zona: ZonaPolygon): void {
         if (!this.map || !this.polygonLayer) return;
-
-        const coords = zona.coords.map(coord => fromLonLat([coord[1], coord[0]]));
+        // Convertir [{lat, lng}, ...] a [[lng, lat], ...] y luego a EPSG:3857
+        const coords = zona.coords.map(coord => fromLonLat([coord[0], coord[1]]));
+        // OpenLayers espera un array de anillos: [ [ [x1, y1], [x2, y2], ... ] ]
         const polygon = new Feature({
             geometry: new Polygon([coords])
         });
-
         polygon.setStyle(new Style({
             stroke: new Stroke({
                 color: zona.color || '#FF0000',
@@ -217,7 +218,6 @@ export class OpenStreetService {
                 color: zona.color ? zona.color + '59' : '#FF000059'
             })
         }));
-
         this.polygonLayer.getSource()?.addFeature(polygon);
     }
 
@@ -227,5 +227,6 @@ export class OpenStreetService {
     }
 }
 
+// Exponer la clase en el objeto window y exportarla
 (window as any).OpenStreetService = OpenStreetService;
 export default OpenStreetService;

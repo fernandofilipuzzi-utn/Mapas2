@@ -68,12 +68,13 @@
 
         document.addEventListener('DOMContentLoaded', async function() {
             try {
-                const map = new OpenStreetService('map', {
+                const maps = new OpenStreetService('map', {
                     center: [-58.3816, -34.6037],
                     zoom: 13
                 });
 
-                await maps.isReady();
+                //preininicalización
+                await maps.geocodeAddress('Paraná, Entre Ríos, Argentina');
 
                 document.getElementById('zonas').addEventListener('change', function(e) {
                     const selectedZone = e.target.value;

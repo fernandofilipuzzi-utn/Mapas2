@@ -51,16 +51,12 @@
         document.addEventListener('DOMContentLoaded', async function() 
         {
             try {
-                const map = new OpenStreetService('map', {
+                const maps = new OpenStreetService('map', {
                     center: [-58.3816, -34.6037],
                     zoom: 13
                 });
 
-                await maps.isReady();
-                
-                //preininicalización
-                const direccionInicial = "Luis Pasteur 128, Paraná, Entre Ríos, Argentina";
-                await maps.geocodeAddress(direccionInicial);
+                await maps.geocodeAddress('Paraná, Entre Ríos, Argentina');
 
                 document.getElementById('localidades').addEventListener('change', function(e) 
                 {

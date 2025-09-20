@@ -49,19 +49,19 @@
         document.addEventListener('DOMContentLoaded',async function() 
         {
             try {
-                const map = new OpenStreetService('map', {
+                const maps = new OpenStreetService('map', {
                     center: [-58.3816, -34.6037],
                     zoom: 13
                 });
 
                 // Inicializar con Paraná
-                await map.geocodeAddress('Paraná, Entre Ríos, Argentina');
+                await maps.geocodeAddress('Paraná, Entre Ríos, Argentina');
             
                 // Manejar cambio de localidad
                 document.getElementById('localidades').addEventListener('change', function(e) 
                 {
                     if (e.target.value) {
-                        map.geocodeAddress(e.target.value);
+                        maps.geocodeAddress(e.target.value);
                     }
                 });
 
@@ -73,14 +73,14 @@
 
                     if (calle && numero && localidad) {
                         const direccion = `${calle} ${numero}, ${localidad}`;
-                        map.geocodeAddress(direccion);
+                        maps.geocodeAddress(direccion);
                     } else {
                         alert('Por favor complete todos los campos');
                     }
                 });
 
                 // Manejar el evento de soltar el marcador
-                map.onMarkerDrop((lat, lng) => 
+                maps.onMarkerDrop((lat, lng) => 
             {
                 console.log('Marcador soltado en:', lat, lng);
                 document.getElementById('coordinates').textContent = 
