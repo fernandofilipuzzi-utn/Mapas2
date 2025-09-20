@@ -1,111 +1,135 @@
-import { Loader } from '@googlemaps/js-api-loader';
+// filepath: h:\repos\tup\javascript\Mapas2\Mapas2\OpenStreet\src\index.ts
+import 'ol/ol.css';
+import Map from 'ol/Map';
+import View from 'ol/View';
+import TileLayer from 'ol/layer/Tile';
+import OSM from 'ol/source/OSM';
+import { Feature } from 'ol';
+import { Point } from 'ol/geom';
+import { fromLonLat, transform } from 'ol/proj';
+import { Vector as VectorLayer } from 'ol/layer';
+import { Vector as VectorSource } from 'ol/source';
+import { Style, Icon } from 'ol/style';
+import Polygon from 'ol/geom/Polygon';
+import { Modify } from 'ol/interaction';
 
 interface MapOptions {
-    apiKey: string;  // API Key es requerido
-    center?: google.maps.LatLngLiteral;
+    center?: [number, number];  // [longitude, latitude]
     zoom?: number;
 }
 
 interface ZonaPolygon {
     nombre: string;
-    coords: google.maps.LatLngLiteral[];
+    coords: [number, number][];
     color?: string;
 }
 
-class GoogleMapsService {
-    private initPromise: Promise<void>;
-    private map: google.maps.Map | null = null;
-    private marker: google.maps.marker.AdvancedMarkerElement | null = null;
-    private geocoder: google.maps.Geocoder | null = null;
-    private loader: Loader | null = null;
-    private activePolygons: google.maps.Polygon[] = [];
-
-    static DEFAULT_CENTER = { lat: -34.6037, lng: -58.3816 };
+export class OpenStreetService {
+    private map: Map | null = null;
+    private markerLayer: VectorLayer<VectorSource> | null = null;
+    private marker: Feature | null = null;
+    private polygonLayer: VectorLayer<VectorSource> | null = null;
+    
+    static DEFAULT_CENTER: [number, number] = [-58.3816, -34.6037];
     static DEFAULT_ZOOM = 13;
 
     private positionChangeCallback?: (lat: number, lng: number) => void;
     private markerDropCallback?: (lat: number, lng: number) => void;
 
-    constructor(element: string | HTMLElement, options: MapOptions) {
-        if (!options.apiKey) {
-            throw new Error('API Key is required');
-        }
-        this.initPromise = this.init(element, options);
+    constructor(element: string | HTMLElement, options: MapOptions = {}) {
+        this.initMap(element, options);
     }
 
-    private async init(element: string | HTMLElement, options: MapOptions): Promise<void> {
-        try {
-            this.loader = new Loader({
-                apiKey: options.apiKey,
-                version: 'weekly',
-                libraries: ['marker']
-            });
+    private initMap(element: string | HTMLElement, options: MapOptions): void {
+        const mapElement = typeof element === 'string' ? 
+            document.getElementById(element) : element;
 
-            const google = await this.loader.load();
-            const mapElement = typeof element === 'string' ? 
-                document.getElementById(element) : element;
-
-            if (!mapElement) {
-                throw new Error('Map container not found');
-            }
-
-            this.map = new google.maps.Map(mapElement, {
-                center: options.center || GoogleMapsService.DEFAULT_CENTER,
-                zoom: options.zoom || GoogleMapsService.DEFAULT_ZOOM,
-                mapId: 'myMapId' // Requerido para AdvancedMarkerElement
-            });
-
-            const position = options.center || GoogleMapsService.DEFAULT_CENTER;
-            const markerView = new google.maps.marker.PinElement({
-                glyph: '⚑',
-                scale: 1.5
-            });
-
-            this.marker = new google.maps.marker.AdvancedMarkerElement({
-                map: this.map,
-                position: position,
-                gmpDraggable: true,
-                content: markerView.element
-            });
-
-            if (this.marker) {
-                this.marker.addListener('dragend', () => {
-                    const position = this.marker?.position;
-                    if (position && this.markerDropCallback) {
-                        const lat = typeof position.lat === 'function' ? position.lat() : position.lat;
-                        const lng = typeof position.lng === 'function' ? position.lng() : position.lng;
-                        this.markerDropCallback(lat, lng);
-                    }
-                });
-            }
-
-        } catch (error) {
-            console.error('Error initializing map:', error);
-            throw error;
+        if (!mapElement) {
+            throw new Error('Map container not found');
         }
+
+        // Crear las capas
+        const osmLayer = new TileLayer({
+            source: new OSM()
+        });
+
+        // Crear la capa para el marcador
+        this.markerLayer = new VectorLayer({
+            source: new VectorSource()
+        });
+
+        // Crear la capa para los polígonos
+        this.polygonLayer = new VectorLayer({
+            source: new VectorSource()
+        });
+
+        // Inicializar el mapa
+        this.map = new Map({
+            target: mapElement,
+            layers: [osmLayer, this.markerLayer, this.polygonLayer],
+            view: new View({
+                center: fromLonLat(options.center || OpenStreetService.DEFAULT_CENTER),
+                zoom: options.zoom || OpenStreetService.DEFAULT_ZOOM
+            })
+        });
+
+        this.addMarker(options.center || OpenStreetService.DEFAULT_CENTER);
+        this.setupDragAndDrop();
+    }
+
+    private addMarker(coordinates: [number, number]): void {
+        if (!this.markerLayer) return;
+
+        // Eliminar marcador anterior si existe
+        if (this.marker) {
+            this.markerLayer.getSource()?.removeFeature(this.marker);
+        }
+
+        // Crear nuevo marcador
+        this.marker = new Feature({
+            geometry: new Point(fromLonLat(coordinates))
+        });
+
+        // Estilo del marcador
+        this.marker.setStyle(new Style({
+            image: new Icon({
+                anchor: [0.5, 1],
+                src: 'https://openlayers.org/en/latest/examples/data/icon.png'
+            })
+        }));
+
+        this.markerLayer.getSource()?.addFeature(this.marker);
+    }
+
+    private setupDragAndDrop(): void {
+        if (!this.map || !this.marker) return;
+
+        const modify = new Modify({
+            features: this.markerLayer?.getSource()?.getFeaturesCollection()
+        });
+
+        this.map.addInteraction(modify);
+
+        modify.on('modifyend', () => {
+            if (this.marker && this.markerDropCallback) {
+                const coords = (this.marker.getGeometry() as Point).getCoordinates();
+                const lonLat = transform(coords, 'EPSG:3857', 'EPSG:4326');
+                this.markerDropCallback(lonLat[1], lonLat[0]);
+            }
+        });
     }
 
     public async geocodeAddress(address: string): Promise<void> {
-        if (!this.map || !this.marker) {
-            throw new Error('Map or marker not initialized');
-        }
-
         try {
-            const geocoder = new google.maps.Geocoder();
-            const results = await geocoder.geocode({ address });
+            const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`);
+            const data = await response.json();
 
-            if (results.results.length > 0) {
-                const location = results.results[0].geometry.location;
-                const newPos = { 
-                    lat: location.lat(), 
-                    lng: location.lng() 
-                };
-                
-                this.marker.position = newPos;
-                this.map.setCenter(location);
+            if (data && data.length > 0) {
+                const location: [number, number] = [parseFloat(data[0].lon), parseFloat(data[0].lat)];
+                this.setCenter(location);
 
                 if (this.positionChangeCallback) {
-                    this.positionChangeCallback(location.lat(), location.lng());
+                    this.positionChangeCallback(location[1], location[0]);
                 }
             }
         } catch (error) {
@@ -117,24 +141,25 @@ class GoogleMapsService {
     public getCurrentPosition(): {lat: number, lng: number} | null {
         if (!this.marker) return null;
         
-        const position = this.marker.position;
-        if (!position) return null;
-
+        const geometry = this.marker.getGeometry() as Point;
+        const coords = transform(geometry.getCoordinates(), 'EPSG:3857', 'EPSG:4326');
+        
         return {
-            lat: typeof position.lat === 'function' ? position.lat() : position.lat,
-            lng: typeof position.lng === 'function' ? position.lng() : position.lng
+            lat: coords[1],
+            lng: coords[0]
         };
     }
 
-    public setCenter(center: google.maps.LatLngLiteral): void {
-        if (!this.map || !this.marker) return;
-        this.map.setCenter(center);
-        this.marker.position = center;
+    public setCenter(center: [number, number]): void {
+        if (!this.map) return;
+        
+        this.map.getView().setCenter(fromLonLat(center));
+        this.addMarker(center);
     }
 
     public setZoom(zoom: number): void {
         if (!this.map) return;
-        this.map.setZoom(zoom);
+        this.map.getView().setZoom(zoom);
     }
 
     public onPositionChanged(callback: (lat: number, lng: number) => void): void {
@@ -145,36 +170,31 @@ class GoogleMapsService {
         this.markerDropCallback = callback;
     }
 
-    public async isReady(): Promise<void> {
-        return this.initPromise;
-    }
-
     public clearZones(): void {
-        this.activePolygons.forEach(polygon => {
-            polygon.setMap(null);
-        });
-        this.activePolygons = [];
+        if (this.polygonLayer) {
+            this.polygonLayer.getSource()?.clear();
+        }
     }
 
     public drawZone(zona: ZonaPolygon): void {
-        if (!this.map) return;
+        if (!this.map || !this.polygonLayer) return;
 
-        const polygon = new google.maps.Polygon({
-            paths: zona.coords,
-            strokeColor: zona.color || "#FF0000",
-            strokeOpacity: 0.8,
-            strokeWeight: 2,
-            fillColor: zona.color || "#FF0000",
-            fillOpacity: 0.35
+        const coords = zona.coords.map(coord => fromLonLat([coord[1], coord[0]]));
+        const polygon = new Feature({
+            geometry: new Polygon([coords])
         });
 
-        polygon.setMap(this.map);
-        this.activePolygons.push(polygon);
+        polygon.setStyle(new Style({
+            stroke: {
+                color: zona.color || '#FF0000',
+                width: 2
+            },
+            fill: {
+                color: zona.color ? zona.color + '59' : '#FF000059'
+            }
+        }));
 
-        // Ajustar el mapa para mostrar todo el polígono
-        const bounds = new google.maps.LatLngBounds();
-        zona.coords.forEach(coord => bounds.extend(coord));
-        this.map.fitBounds(bounds);
+        this.polygonLayer.getSource()?.addFeature(polygon);
     }
 
     public drawZones(zonas: ZonaPolygon[]): void {
@@ -183,5 +203,5 @@ class GoogleMapsService {
     }
 }
 
-(window as any).GoogleMapsService = GoogleMapsService;
-export default GoogleMapsService;
+(window as any).OpenStreetService = OpenStreetService;
+export default OpenStreetService;

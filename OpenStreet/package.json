@@ -1,24 +1,26 @@
 {
-  "name": "googlemaps-wrapper",
+  "name": "openstreet-wrapper",
   "version": "1.0.0",
-  "description": "Google Maps wrapper with TypeScript and Webpack",
-  "main": "dist/googlemaps.min.js",
+  "description": "OpenStreet wrapper with TypeScript and Webpack",
+  "main": "dist/openstreet.min.js",
   "scripts": {
     "build": "webpack --mode production",
     "start": "webpack serve --mode development --open",
     "dev": "webpack serve --mode development --open"
   },
   "devDependencies": {
-    "@types/google.maps": "^3.53.4",
-    "dotenv-webpack": "^8.0.1",
-    "html-webpack-plugin": "^5.5.0",
-    "ts-loader": "^9.4.2",
-    "typescript": "^4.9.5",
-    "webpack": "^5.76.0",
-    "webpack-cli": "^5.0.1",
-    "webpack-dev-server": "^4.15.2"
+    "@types/ol": "^7.0.0",
+    "@types/proj4": "^2.19.0",
+    "css-loader": "^6.8.1",
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.4.4",
+    "typescript": "^5.2.2",
+    "webpack": "^5.88.2",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
-    "@googlemaps/js-api-loader": "^1.15.1"
+    "ol": "^8.2.0",
+    "proj4": "^2.19.10"
   }
 }

@@ -12,6 +12,8 @@
             margin-top: 20px;
         }
     </style>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v8.1.0/ol.css">
 </head>
 <body>
     <div class="container mt-4">
@@ -42,14 +44,13 @@
             <strong>Coordenadas del marcador:</strong> <span id="coords">N/A</span>
     </div>
 
-    <script src="googlemaps.min.js"></script>
+    <script src="openstreet.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded',async function() 
         {
             try {
-                const maps = new GoogleMapsService('map', 
-                {
-                    apiKey: 'apikey',  
+                const map = new OpenStreetService('map', {
+                    center: [-58.3816, -34.6037],
                     zoom: 13
                 });
 

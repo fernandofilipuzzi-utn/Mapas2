@@ -12,6 +12,8 @@
             margin-top: 20px;
         }
     </style>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ol@v8.1.0/ol.css">
 </head>
 <body>
     <div class="container mt-4">
@@ -28,7 +30,7 @@
         <div id="map"></div>
     </div>
 
-    <script src="googlemaps.min.js"></script>
+    <script src="openstreet.min.js"></script>
     <script>
         // zonas predefinidas con sus coordenadas y colores
         const zonasData = {
@@ -66,9 +68,8 @@
 
         document.addEventListener('DOMContentLoaded', async function() {
             try {
-                const maps = new GoogleMapsService('map', {
-                    apiKey: 'apikey',
-                    center: { lat: -31.749788, lng: -60.520532 },
+                const map = new OpenStreetService('map', {
+                    center: [-58.3816, -34.6037],
                     zoom: 13
                 });
 

@@ -6,7 +6,7 @@ module.exports = {
   entry: './src/index.ts',
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'googlemaps.min.js',
+    filename: 'openstreet.min.js',
     library: {
       name: 'GoogleMapsService',
       type: 'umd',
