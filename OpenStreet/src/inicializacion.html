@@ -41,12 +41,11 @@
         <div id="map"></div>
 
         <div id="coordinates" class="mt-3">
-            <strong>Coordenadas del marcador:</strong> 
-            <span id="coords">Lat: -31.749788, Lng: -60.520532</span>
+            <strong>Coordenadas del marcador:</strong> <span id="coords">N/A</span>
         </div>
     </div>
 
-    <script src="openstreet.min.js"></script>
+    <script src="openstreet.min.js?v=1"></script>
     <script>
         document.addEventListener('DOMContentLoaded', async function() 
         {
@@ -71,7 +70,8 @@
                     const localidad = document.getElementById('localidades').value;
 
                     if (calle && numero && localidad) {
-                        const direccion = `${calle} ${numero}, ${localidad}`;
+                    
+                        const direccion = `${calle} ${numero}, ${localidad}`;                       
                         maps.geocodeAddress(direccion);
                     } else {
                         alert('Por favor complete todos los campos');

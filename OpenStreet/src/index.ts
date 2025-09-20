@@ -201,23 +201,41 @@ export class OpenStreetService {
         }
     }
 
-    public drawZone(zona: ZonaPolygon): void {
+    public drawZone(zona: ZonaPolygon): void 
+    {
         if (!this.map || !this.polygonLayer) return;
-        // Convertir [{lat, lng}, ...] a [[lng, lat], ...] y luego a EPSG:3857
-        const coords = zona.coords.map(coord => fromLonLat([coord[0], coord[1]]));
+
+        // Convertir las coordenadas al formato que espera OpenLayers
+        const coords = zona.coords.map(coord => {
+            // Asumimos que coord[0] es lng y coord[1] es lat para mantener
+            // la consistencia con el resto de la API
+            return fromLonLat([coord[0], coord[1]]);
+        });
+
+        // Asegurarnos de cerrar el polígono si no está cerrado
+        if (coords.length > 0 && 
+            (coords[0][0] !== coords[coords.length-1][0] || 
+             coords[0][1] !== coords[coords.length-1][1])) {
+            coords.push(coords[0]); // Cerrar el polígono
+        }
+
         // OpenLayers espera un array de anillos: [ [ [x1, y1], [x2, y2], ... ] ]
         const polygon = new Feature({
             geometry: new Polygon([coords])
         });
+
+        // Establecer el estilo del polígono
         polygon.setStyle(new Style({
             stroke: new Stroke({
                 color: zona.color || '#FF0000',
                 width: 2
             }),
             fill: new Fill({
-                color: zona.color ? zona.color + '59' : '#FF000059'
+                color: zona.color ? zona.color + '40' : '#FF000040' // Usar 40 para 25% de opacidad
             })
         }));
+
+        // Añadir el polígono a la capa
         this.polygonLayer.getSource()?.addFeature(polygon);
     }
 

@@ -42,9 +42,10 @@
 
         <div id="coordinates" class="mt-3">
             <strong>Coordenadas del marcador:</strong> <span id="coords">N/A</span>
+        </div>
     </div>
 
-    <script src="openstreet.min.js"></script>
+    <script src="openstreet.min.js?v=1"></script>
     <script>
         document.addEventListener('DOMContentLoaded',async function() 
         {
@@ -57,7 +58,6 @@
                 // Inicializar con Paraná
                 await maps.geocodeAddress('Paraná, Entre Ríos, Argentina');
             
-                // Manejar cambio de localidad
                 document.getElementById('localidades').addEventListener('change', function(e) 
                 {
                     if (e.target.value) {
@@ -65,7 +65,6 @@
                     }
                 });
 
-                // Manejar búsqueda por dirección
                 document.getElementById('buscar').addEventListener('click', function() {
                     const calle = document.getElementById('calle').value;
                     const numero = document.getElementById('numero').value;
@@ -79,13 +78,12 @@
                     }
                 });
 
-                // Manejar el evento de soltar el marcador
                 maps.onMarkerDrop((lat, lng) => 
-            {
-                console.log('Marcador soltado en:', lat, lng);
-                document.getElementById('coordinates').textContent = 
-                    `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
-            });
+                {
+                    console.log('Marcador soltado en:', lat, lng);
+                    document.getElementById('coords').textContent = 
+                        `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                });
         
             } catch (error) {
                 console.error('Error initializing map:', error);
