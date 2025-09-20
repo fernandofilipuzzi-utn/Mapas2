@@ -52,13 +52,13 @@
                 const maps = new GoogleMapsService('map', 
                 {
                     apiKey: 'apikey',
-                    center: { lat: -31.749788, lng: -60.520532 }, // Coordenadas iniciales
-                    zoom: 15 // Zoom más cercano para ver mejor la ubicación
+                    center: { lat: -31.749788, lng: -60.520532 },
+                    zoom: 15
                 });
 
                 await maps.isReady();
                 
-                // Pre-inicializar la dirección
+                //preininicalización
                 const direccionInicial = "Luis Pasteur 128, Paraná, Entre Ríos, Argentina";
                 await maps.geocodeAddress(direccionInicial);
 

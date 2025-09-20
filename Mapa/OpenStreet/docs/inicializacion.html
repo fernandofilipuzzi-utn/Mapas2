@@ -1,0 +1,51 @@
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Google Maps Service - Inicialización en Ubicación</title><link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet"><style>#map {
+            height: 400px;
+            width: 100%;
+            margin-top: 20px;
+        }</style><script defer="defer" src="googlemaps.min.js"></script></head><body><div class="container mt-4"><div class="row"><div class="col-md-4"><select id="localidades" class="form-control mb-3"><option value="">Seleccione una localidad</option><option value="Buenos Aires, Buenos Aires, Argentina">Buenos Aires</option><option value="Córdoba, Córdoba, Argentina">Córdoba</option><option value="Rosario, Santa Fé, Argentina">Rosario</option><option value="Mendoza, Mendoza, Argentina">Mendoza</option><option value="Paraná, Entre Ríos, Argentina" selected="selected">Paraná</option></select></div><div class="col-md-4"><input id="calle" class="form-control mb-3" placeholder="Calle" value="Luis Pasteur"></div><div class="col-md-2"><input id="numero" class="form-control mb-3" placeholder="Número" value="128"></div><div class="col-md-2"><button id="buscar" class="form-control btn btn-primary mb-3">Buscar</button></div></div><div id="map"></div><div id="coordinates" class="mt-3"><strong>Coordenadas del marcador:</strong> <span id="coords">Lat: -31.749788, Lng: -60.520532</span></div></div><script src="googlemaps.min.js"></script><script>document.addEventListener('DOMContentLoaded', async function() 
+        {
+            try {
+                const maps = new GoogleMapsService('map', 
+                {
+                    apiKey: 'apikey',
+                    center: { lat: -31.749788, lng: -60.520532 },
+                    zoom: 15
+                });
+
+                await maps.isReady();
+                
+                //preininicalización
+                const direccionInicial = "Luis Pasteur 128, Paraná, Entre Ríos, Argentina";
+                await maps.geocodeAddress(direccionInicial);
+
+                document.getElementById('localidades').addEventListener('change', function(e) 
+                {
+                    if (e.target.value) {
+                        maps.geocodeAddress(e.target.value);
+                    }
+                });
+
+                document.getElementById('buscar').addEventListener('click', function() {
+                    const calle = document.getElementById('calle').value;
+                    const numero = document.getElementById('numero').value;
+                    const localidad = document.getElementById('localidades').value;
+
+                    if (calle && numero && localidad) {
+                        const direccion = `${calle} ${numero}, ${localidad}`;
+                        maps.geocodeAddress(direccion);
+                    } else {
+                        alert('Por favor complete todos los campos');
+                    }
+                });
+
+                maps.onMarkerDrop((lat, lng) => 
+                {
+                    console.log('Marcador soltado en:', lat, lng);
+                    document.getElementById('coords').textContent = 
+                        `Lat: ${lat.toFixed(6)}, Lng: ${lng.toFixed(6)}`;
+                });
+            
+            } catch (error) {
+                console.error('Error initializing map:', error);
+            }
+        });</script></body></html>
